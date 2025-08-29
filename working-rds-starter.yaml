@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  CloudFormation Template to create a VPC spanning 3 AZs in us-west-2,
+  with the name VPC-shasan4700.
+
+Parameters:
+  VPCCIDR:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: CIDR block for the VPC
+
+  PublicSubnetCIDRs:
+    Type: List<String>
+    Default: "10.0.1.0/24,10.0.2.0/24,10.0.3.0/24"
+    Description: Comma-separated CIDR blocks for the public subnets
+Resources:
+  RdsInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      VPCSecurityGroups:
+      - <SECURITY-GROUP-ID>
+      AllocatedStorage: '5'
+      DBInstanceClass: db.t3.micro
+      DBInstanceIdentifier: playground-db
+      Engine: MySQL
+      MasterUsername: Admin
+      MasterUserPassword: CloudAcademy123!
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: VPC-shasan4700
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: !Select [0, !Ref PublicSubnetCIDRs]
+      AvailabilityZone: !Select [0, !GetAZs us-west-2]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: PublicSubnet1
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: !Select [1, !Ref PublicSubnetCIDRs]
+      AvailabilityZone: !Select [1, !GetAZs us-west-2]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: PublicSubnet2
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: !Select [2, !Ref PublicSubnetCIDRs]
+      AvailabilityZone: !Select [2, !GetAZs us-west-2]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: PublicSubnet3
+
+Outputs:
+  VPCId:
+    Description: VPC ID
+    Value: !Ref MyVPC
+
+  Subnet1:
+    Description: Public Subnet 1 ID
+    Value: !Ref PublicSubnet1
+
+  Subnet2:
+    Description: Public Subnet 2 ID
+    Value: !Ref PublicSubnet2
+
+  Subnet3:
+    Description: Public Subnet 3 ID
+    Value: !Ref PublicSubnet3
